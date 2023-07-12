@@ -1,23 +1,15 @@
 import json
-import hashlib
 import logging
-import numpy as np
 import os
 import daisy
 from funlib.geometry import Coordinate
-from funlib.persistence import open_ds, Array, graphs, prepare_ds
+from funlib.persistence import graphs
 import sys
 import time
-import subprocess
-import sys
-sys.path.append('/n/groups/htem/users/br128/xray-challenge-entry/setups/lr_mtlsd_refine')
-from model import neighborhood
+from .utils import neighborhood
 from lsd.post import agglomerate_in_block
 
 logging.getLogger().setLevel(logging.INFO)
-# logging.getLogger('lsd.parallel_fragments').setLevel(logging.DEBUG)
-# logging.getLogger('daisy.persistence.mongodb_graph_provider').setLevel(logging.DEBUG)
-#logging.getLogger('daisy').setLevel(logging.DEBUG)
 
 def agglomerate(
         base_dir,

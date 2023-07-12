@@ -3,7 +3,6 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import daisy
 import json
-import logging
 import numpy as np
 import numba as nb
 import time

@@ -11,7 +11,7 @@ from lsd.post import watershed_in_block
 from .utils import neighborhood
 
 logging.getLogger().setLevel(logging.INFO)
-#logging.getLogger('lsd.parallel_fragments').setLevel(logging.DEBUG)
+
 
 def extract_fragments(
         base_dir,

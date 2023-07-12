@@ -3,8 +3,7 @@ import json
 import logging
 import multiprocessing as mp
 import numpy as np
-from funlib.geometry import Coordinate
-from funlib.persistence import open_ds, Array, graphs, prepare_ds
+from funlib.persistence import open_ds, graphs
 import os
 import sys
 import time

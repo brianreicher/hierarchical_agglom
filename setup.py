@@ -4,7 +4,7 @@ from setuptools import setup
 setup(
     name="hierarchical_agglom",
     version="0.1.0",
-    description="A package for parallelized hierarchical-merge-tree-based image segmentation, built with MongoDB and C++",
+    description="A package for parallelized hierarchical-merge-tree-based image segmentation, built on MongoDB and C++",
     long_description=open(file="README.md").read(),
     author="Brian Kyle Reicher",
     author_email="reicher.b@northeastern.edu",
@@ -29,7 +29,10 @@ setup(
         "gunpowder @ git+https://github.com/funkey/gunpowder",
         "funlib.persistence @ git+https://github.com/funkelab/funlib.persistence.git",
         "daisy",
+        "lsd @ git+https://github.com/funkelab/lsd.git"
         "funlib.segment @ git+https://github.com/funkelab/funlib.segment.git",
+        "numba",
+        "multiprocessing"
     ],
 )
 
