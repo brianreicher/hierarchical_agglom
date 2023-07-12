@@ -29,10 +29,9 @@ setup(
         "gunpowder @ git+https://github.com/funkey/gunpowder",
         "funlib.persistence @ git+https://github.com/funkelab/funlib.persistence.git",
         "daisy",
-        "lsd @ git+https://github.com/funkelab/lsd.git"
+        "lsds @ git+https://github.com/funkelab/lsd.git",
         "funlib.segment @ git+https://github.com/funkelab/funlib.segment.git",
         "numba",
-        "multiprocessing"
     ],
 )
 

@@ -1,10 +1,7 @@
-import json
 import logging
-import os
 import daisy
-from funlib.geometry import Coordinate
-from funlib.persistence import graphs
-import sys
+from funlib.geometry import Coordinate, Roi
+from funlib.persistence import graphs, Array
 import time
 from .utils import neighborhood
 from lsd.post import agglomerate_in_block
@@ -12,20 +9,13 @@ from lsd.post import agglomerate_in_block
 logging.getLogger().setLevel(logging.INFO)
 
 def agglomerate(
-        base_dir,
-        experiment,
-        setup,
-        iteration,
-        file_name,
-        crops,
+        affs_file,
         affs_dataset,
+        fragments_file,
         fragments_dataset,
-        block_size,
-        context,
-        num_workers,
-        merge_function,
-        **kwargs):
-
+        context:tuple,
+        num_workers:int=7,
+        merge_function:str="watershed")-> None:
     '''Run agglomeration in parallel blocks. Requires that affinities have been
     predicted before.
     Args:
@@ -44,88 +34,62 @@ def agglomerate(
             Symbolic name of a merge function. See dictionary below.
     '''
 
-    for crop in crops:
         
-        affs_file = os.path.abspath(
-                os.path.join(
-                    base_dir,file_name
-                    )
-                )
+    start: float = time.time()
+    logging.info(msg=f"Reading {affs_dataset} from {affs_file}")
 
+    fragments: Array = daisy.open_ds(fragments_file, fragments_dataset, mode='r')
 
-        if crop != "":
+    voxel_size: Coordinate = fragments.voxel_size
+    total_roi: Roi = fragments.roi
 
-            crop_path = os.path.abspath(os.path.join(base_dir,experiment,"01_data",file_name,crop))
+    write_roi = daisy.Roi(offset=(0,)*3,shape=Coordinate(fragments.chunk_shape))
 
-            with open(crop_path,"r") as f:
-                crop = json.load(f)
-            
-            crop_name = crop["name"]
-            crop_roi = daisy.Roi(crop["offset"],crop["shape"])
+    min_neighborhood: int = min( filter(lambda x: x != 0, [value for sublist in neighborhood for value in sublist]))
+    max_neighborhood: int = max( filter(lambda x: x != 0, [value for sublist in neighborhood for value in sublist]))
 
-            affs_file = os.path.join(affs_file,crop_name+'.zarr')
-        
-        else:
-            crop_name = ""
-            crop_roi = None
+    read_roi: Roi = write_roi.grow(amount_neg=min_neighborhood, amount_pos=max_neighborhood)
 
-        fragments_file = affs_file
+    write_roi: Roi = write_roi * voxel_size
+    read_roi: Roi = read_roi * voxel_size
 
-        block_directory = os.path.join(fragments_file,'block_nodes')
+    logging.info("Reading fragments from %s", fragments_file)
 
-        logging.info("Reading affs from %s", affs_file)
-        affs = daisy.open_ds(affs_file, affs_dataset, mode='r')
+    context = Coordinate(context)
+    total_roi = fragments.roi
 
-        if block_size == [0,0,0]:
-            context = [50,40,40]
-            block_size = crop_roi.shape if crop_roi else affs.roi.shape
+    task = daisy.Task(
+        task_id='AgglomerateBlockwiseTask',
+        total_roi=total_roi,
+        read_roi=read_roi,
+        write_roi=write_roi,
+        process_function=lambda b: agglomerate_worker(
+            block=b,
+            affs_file=affs_file,
+            affs_dataset=affs_dataset,
+            fragments_file=fragments_file,
+            fragments_dataset=fragments_dataset,
+            merge_function=merge_function),
+        num_workers=num_workers,
+        read_write_conflict=False,
+        timeout=5,
+        fit='shrink')
 
-        fragments = daisy.open_ds(fragments_file, fragments_dataset, mode='r')
+    done: bool = daisy.run_blockwise(tasks=[task])
 
-        voxel_size = fragments.voxel_size
-        dtype = fragments.dtype
-        total_roi = fragments.roi
+    if not done:
+        raise RuntimeError("at least one block failed!")
+    
+    end: float = time.time()
 
-        write_roi = daisy.Roi(offset=(0,)*3,shape=Coordinate(fragments.chunk_shape))
+    seconds: float = end - start
+    minutes: float = seconds/60
+    hours: float = minutes/60
+    days: float = hours/24
 
-        min_neighborhood: int = min( filter(lambda x: x != 0, [value for sublist in neighborhood for value in sublist]))
-        max_neighborhood: int = max( filter(lambda x: x != 0, [value for sublist in neighborhood for value in sublist]))
+    print('Total time to agglomerate fragments: %f seconds / %f minutes / %f hours / %f days' % (seconds, minutes, hours, days))
+    return done
 
-        read_roi = write_roi.grow(amount_neg=min_neighborhood, amount_pos=max_neighborhood)
-
-        write_roi = write_roi * voxel_size
-        read_roi = read_roi * voxel_size
-
-        logging.info("Reading fragments from %s", fragments_file)
-
-        context = Coordinate(context)
-        total_roi = fragments.roi
-
-        task = daisy.Task(
-            'AgglomerateBlockwiseTask',
-            total_roi,
-            read_roi,
-            write_roi,
-            process_function=lambda b: agglomerate_worker(
-                b,
-                affs_file,
-                affs_dataset,
-                fragments_file,
-                fragments_dataset,
-                block_directory,
-                write_roi.shape,
-                merge_function),
-            num_workers=num_workers,
-            read_write_conflict=False,
-            timeout=5,
-            fit='shrink')
-
-        done = daisy.run_blockwise([task])
-
-        if not done:
-            raise RuntimeError("at least one block failed!")
-
-        block_size = [0,0,0]
 
 def agglomerate_worker(
         block,
@@ -133,11 +97,9 @@ def agglomerate_worker(
         affs_dataset,
         fragments_file,
         fragments_dataset,
-        block_directory,
-        write_size,
-        merge_function):
+        merge_function:str="watershed") -> None:
 
-    waterz_merge_function = {
+    waterz_merge_function: str = {
         'hist_quant_10': 'OneMinus<HistogramQuantileAffinity<RegionGraphType, 10, ScoreValue, 256, false>>',
         'hist_quant_10_initmax': 'OneMinus<HistogramQuantileAffinity<RegionGraphType, 10, ScoreValue, 256, true>>',
         'hist_quant_25': 'OneMinus<HistogramQuantileAffinity<RegionGraphType, 25, ScoreValue, 256, false>>',
@@ -152,21 +114,14 @@ def agglomerate_worker(
     }[merge_function]
 
     logging.info(f"Reading affs from {affs_file}")
-    affs = daisy.open_ds(affs_file, affs_dataset)
+    affs: Array = daisy.open_ds(filename=affs_file, ds_name=affs_dataset)
 
     logging.info(f"Reading fragments from {fragments_file}")
-    fragments = daisy.open_ds(fragments_file, fragments_dataset)
+    fragments: Array = daisy.open_ds(filename=fragments_file, ds_name=fragments_dataset)
 
     #opening RAG file
-    logging.info("Opening RAG file...")
-    # rag_provider = graphs.FileGraphProvider(
-    #     directory=block_directory,
-    #     chunk_size=write_size,
-    #     mode='r+',
-    #     directed=False,
-    #     edges_collection='edges_' + merge_function,
-    #     position_attribute=['center_z', 'center_y', 'center_x']
-    #     )
+    logging.info(msg="Opening RAG file...")
+
     db_host: str = "mongodb://localhost:27017"
     db_name: str = "seg"
     rag_provider = graphs.MongoDbGraphProvider(
@@ -178,38 +133,12 @@ def agglomerate_worker(
         nodes_collection="hglom_nodes",
         edges_collection=f"hglom_edges_{merge_function}",
     )
-    logging.info("RAG file opened")
+    logging.info(msg="RAG file opened")
 
     agglomerate_in_block(
-            affs,
-            fragments,
-            rag_provider,
-            block,
+            affs=affs,
+            fragments=fragments,
+            rag_provider=rag_provider,
+            block=block,
             merge_function=waterz_merge_function,
             threshold=1.0)
-
-def check_block(blocks_agglomerated, block):
-
-    done = blocks_agglomerated.count({'block_id': block.block_id}) >= 1
-
-    return done
-
-if __name__ == "__main__":
-
-    config_file = sys.argv[1]
-
-    with open(config_file, 'r') as f:
-        config = json.load(f)
-
-    start = time.time()
-
-    agglomerate(**config)
-
-    end = time.time()
-
-    seconds = end - start
-    minutes = seconds/60
-    hours = minutes/60
-    days = hours/24
-
-    print('Total time to agglomerate: %f seconds / %f minutes / %f hours / %f days' % (seconds, minutes, hours, days))

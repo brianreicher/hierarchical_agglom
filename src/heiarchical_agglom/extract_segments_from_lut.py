@@ -21,8 +21,7 @@ def extract_segmentation(
         num_workers,
         roi_offset=None,
         roi_shape=None,
-        run_type=None,
-        **kwargs):
+        run_type=None):
 
     '''
     Args:

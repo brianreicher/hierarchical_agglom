@@ -1,2 +1,2 @@
 # hierarchical_agglom
-A package for hierarchical merge-tree-based segmentation, built on C++ and MongoDB 
+A package for parallelized hierarchical-merge-tree-based image segmentation, built on MongoDB and C++
