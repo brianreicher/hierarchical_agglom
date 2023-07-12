@@ -1,0 +1,17 @@
+{
+    "base_dir": "/n/groups/htem/users/br128/xray-challenge-entry/setups/seeded_rusty_lr_mtlsd_refine/",
+    "epsilon_agglomerate": 0.01, //might want to change this
+    "num_workers": 2,
+    "fragments_in_xy": false,
+    "block_size": [0,0,0],
+    "setup": "seeded_rusty_lr_mtlsd_refine",
+    "fragments_dataset": "fragments",
+    "iteration": 220000,
+    "affs_dataset": "pred_affs_latest",
+    "experiment": "seeded_rusty_lr_mtlsd_refine",
+    "filter_fragments": 0.5,
+    "file_name": "validation.zarr",
+    "context": [250,20,20],
+    "ds_in_dataset":"pred_affs_latest",
+    "crops":[""]
+}
