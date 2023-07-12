@@ -38,7 +38,7 @@ def agglomerate(
     start: float = time.time()
     logging.info(msg=f"Reading {affs_dataset} from {affs_file}")
 
-    fragments: Array = daisy.open_ds(fragments_file, fragments_dataset, mode='r')
+    fragments: Array = daisy.open_ds(filename=fragments_file, ds_name=fragments_dataset, mode='r')
 
     voxel_size: Coordinate = fragments.voxel_size
     total_roi: Roi = fragments.roi
