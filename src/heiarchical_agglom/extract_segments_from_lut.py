@@ -3,9 +3,10 @@ import json
 import logging
 import numpy as np
 import os
-import sys
 import time
+from funlib.geometry import Coordinate, Roi
 from funlib.segment.arrays import replace_values
+from funlib.persistence import Array
 
 
 logging.getLogger().setLevel(logging.INFO)
@@ -13,15 +14,10 @@ logging.getLogger().setLevel(logging.INFO)
 def extract_segmentation(
         fragments_file,
         fragments_dataset,
-        crops,
         edges_collection,
         block_size,
         threshold,
-        out_dataset,
-        num_workers,
-        roi_offset=None,
-        roi_shape=None,
-        run_type=None):
+        num_workers:int=7) -> bool:
 
     '''
     Args:
@@ -51,110 +47,88 @@ def extract_segmentation(
             Can be used to direct luts into directory (e.g testing, validation,
             etc).
     '''
+    
+    results_file: str = os.path.join(fragments_file,"results.json")
+    
+    lut_dir: str = os.path.join(fragments_file,'luts','fragment_segment')
 
-    for crop in crops:
-        # open fragments
+    fragments: Array = daisy.open_ds(filename=fragments_file, ds_name=fragments_dataset)
 
-        if crop != "":
-            fragments_file = os.path.join(fragments_file,os.path.basename(crop)[:-4]+'zarr')
-            crop_path = os.path.join(fragments_file,'crop.json')
-            with open(crop_path,"r") as f:
-                crop = json.load(f)
-            
-            crop_name = crop["name"]
-            crop_roi = daisy.Roi(crop["offset"],crop["shape"])
+    total_roi: Roi = fragments.roi
+    read_roi = daisy.Roi(offset=(0,)*3, shape=Coordinate(block_size))
+    write_roi: Roi = read_roi
 
-        else:
-            crop_name = ""
-            crop_roi = None
-        
-        results_file = os.path.join(fragments_file,"results.json")
-        
-        lut_dir = os.path.join(fragments_file,'luts','fragment_segment')
+    logging.info(msg="Preparing segmentation dataset...")
 
-        fragments = daisy.open_ds(fragments_file, fragments_dataset)
+    thresholds: list[float] = [.64, .74, .84, .94]
+    
+    if os.path.exists(path=results_file):
+        with open(file=results_file,mode="r") as f:
+            results = json.load(f)
+            bests: list = [results[x]['best_voi']['threshold'] for x in results.keys()]
+            for best in bests:
+                if best not in thresholds:
+                    thresholds.append(best)
 
-        if block_size == [0,0,0]:
-            context = [50,40,40]
-            block_size = crop_roi.shape if crop_roi else fragments.roi.shape
+    for threshold in thresholds:
 
-        total_roi = fragments.roi
-        read_roi = daisy.Roi((0,)*3, daisy.Coordinate(block_size))
-        write_roi = read_roi
+        seg_name: str = f"segmentation_{threshold}"
 
-        logging.info("Preparing segmentation dataset...")
+        start: float = time.time()
 
-        thresholds = [.64, .74, .84, .94]
-        
-        if os.path.exists(results_file):
-            with open(results_file,"r") as f:
-                results = json.load(f)
-                bests = [results[x]['best_voi']['threshold'] for x in results.keys()]
-                for best in bests:
-                    if best not in thresholds:
-                        thresholds.append(best)
+        segmentation = daisy.prepare_ds(
+            filename=fragments_file,
+            ds_name=seg_name,
+            total_roi=fragments.roi,
+            voxel_size=fragments.voxel_size,
+            dtype=np.uint64,
+            write_roi=write_roi,
+            delete=True)
 
-        for threshold in thresholds:
+        lut_filename: str = f'seg_{edges_collection}_{int(threshold*100)}'
 
-            seg_name = f"segmentation_{threshold}"
+        lut: str = os.path.join(
+                lut_dir,
+                lut_filename + '.npz')
 
-            start = time.time()
+        assert os.path.exists(lut), f"{lut} does not exist"
 
-            segmentation = daisy.prepare_ds(
-                fragments_file,
-                seg_name,
-                fragments.roi,
-                voxel_size=fragments.voxel_size,
-                dtype=np.uint64,
-                write_roi=write_roi,
-                delete=True)
+        logging.info("Reading fragment-segment LUT...")
 
-            lut_filename = f'seg_{edges_collection}_{int(threshold*100)}'
+        lut = np.load(lut)['fragment_segment_lut']
 
-            lut = os.path.join(
-                    lut_dir,
-                    lut_filename + '.npz')
+        logging.info(f"Found {len(lut[0])} fragments in LUT")
 
-            assert os.path.exists(lut), f"{lut} does not exist"
+        num_segments: int = len(np.unique(lut[1]))
+        logging.info(f"Relabelling fragments to {num_segments} segments")
 
-            logging.info("Reading fragment-segment LUT...")
+        task = daisy.Task(
+            task_id='ExtractSegmentationTask',
+            total_roi=total_roi,
+            read_roi=read_roi,
+            write_roi=write_roi,
+            process_function=lambda b: segment_in_block(
+                block=b,
+                segmentation=segmentation,
+                fragments=fragments,
+                lut=lut),
+            fit='shrink',
+            num_workers=num_workers)
 
-            lut = np.load(lut)['fragment_segment_lut']
+        done: bool = daisy.run_blockwise(tasks=[task])
 
-            logging.info(f"Found {len(lut[0])} fragments in LUT")
+        if not done:
+            raise RuntimeError("Extraction of segmentation from LUT failed for (at least) one block")
 
-            num_segments = len(np.unique(lut[1]))
-            logging.info(f"Relabelling fragments to {num_segments} segments")
-
-            task = daisy.Task(
-                'ExtractSegmentationTask',
-                total_roi,
-                read_roi,
-                write_roi,
-                lambda b: segment_in_block(
-                    b,
-                    segmentation,
-                    fragments,
-                    lut),
-                fit='shrink',
-                num_workers=num_workers)
-
-            done = daisy.run_blockwise([task])
-
-            if not done:
-                raise RuntimeError("Extraction of segmentation from LUT failed for (at least) one block")
-
-            logging.info(f"Took {time.time() - start} seconds to extract segmentation from LUT")
-   
-        #reset
-        block_size = [0,0,0]
-        fragments_file = os.path.dirname(fragments_file)
+        logging.info(msg=f"Took {time.time() - start} seconds to extract segmentation from LUT")
+    
+    return True
 
 def segment_in_block(
         block,
         segmentation,
         fragments,
-        lut):
+        lut) -> None:
 
     logging.info("Copying fragments to memory...")
 
@@ -166,13 +140,3 @@ def segment_in_block(
     relabelled = replace_values(fragments, lut[0], lut[1], out_array=relabelled)
 
     segmentation[block.write_roi] = relabelled
-
-if __name__ == "__main__":
-
-    config_file = sys.argv[1]
-
-    with open(config_file, 'r') as f:
-        config = json.load(f)
-
-    print("extracting segmentation . . .")
-    extract_segmentation(**config)
