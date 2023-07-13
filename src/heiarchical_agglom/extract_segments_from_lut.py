@@ -15,8 +15,8 @@ def extract_segmentation(
         fragments_file,
         fragments_dataset,
         edges_collection,
-        block_size,
-        threshold,
+        block_size:list = [64,64,64],
+        threshold:float = 0.48,
         num_workers:int=7) -> bool:
 
     '''
@@ -91,16 +91,16 @@ def extract_segmentation(
                 lut_dir,
                 lut_filename + '.npz')
 
-        assert os.path.exists(lut), f"{lut} does not exist"
+        assert os.path.exists(path=lut), f"{lut} does not exist"
 
-        logging.info("Reading fragment-segment LUT...")
+        logging.info(msg="Reading fragment-segment LUT...")
 
-        lut = np.load(lut)['fragment_segment_lut']
+        lut = np.load(file=lut)['fragment_segment_lut']
 
-        logging.info(f"Found {len(lut[0])} fragments in LUT")
+        logging.info(msg=f"Found {len(lut[0])} fragments in LUT")
 
-        num_segments: int = len(np.unique(lut[1]))
-        logging.info(f"Relabelling fragments to {num_segments} segments")
+        num_segments: int = len(np.unique(ar=lut[1]))
+        logging.info(msg=f"Relabelling fragments to {num_segments} segments")
 
         task = daisy.Task(
             task_id='ExtractSegmentationTask',
@@ -130,13 +130,13 @@ def segment_in_block(
         fragments,
         lut) -> None:
 
-    logging.info("Copying fragments to memory...")
+    logging.info(msg="Copying fragments to memory...")
 
     # load fragments
     fragments = fragments.to_ndarray(block.write_roi)
 
     # replace values, write to empty array
-    relabelled = np.zeros_like(fragments)
-    relabelled = replace_values(fragments, lut[0], lut[1], out_array=relabelled)
+    relabelled: np.ndarray = np.zeros_like(fragments)
+    relabelled: np.ndarray = replace_values(in_array=fragments, old_values=lut[0], new_values=lut[1], out_array=relabelled)
 
     segmentation[block.write_roi] = relabelled

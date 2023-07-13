@@ -15,8 +15,8 @@ def find_segments(affs_file,
         affs_dataset,
         fragments_file,
         fragments_dataset,        
-        thresholds_minmax,
-        thresholds_step,
+        thresholds_minmax:list=[0,1],
+        thresholds_step:float=0.02,
         merge_function:str="watershed",) -> bool:
     '''
     Args:
