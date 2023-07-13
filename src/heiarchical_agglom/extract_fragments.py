@@ -12,23 +12,23 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 def extract_fragments(
-        affs_file:str,
-        affs_dataset:str,
-        fragments_file:str,
-        fragments_dataset:str,
-        seeds_file:str,
-        seeds_dataset:str,
-        context:tuple,
-        num_workers:int=20,
-        fragments_in_xy=False,
-        epsilon_agglomerate=0.05,
-        mask_file=None,
-        mask_dataset=None,
-        filter_fragments=0.10,
-        replace_sections=None,
-        merge_function:str="watershed") -> bool:
-    
-    '''Run agglomeration in parallel blocks. Requires that affinities have been
+    affs_file: str,
+    affs_dataset: str,
+    fragments_file: str,
+    fragments_dataset: str,
+    seeds_file: str,
+    seeds_dataset: str,
+    context: tuple,
+    num_workers: int = 20,
+    fragments_in_xy=False,
+    epsilon_agglomerate=0.05,
+    mask_file=None,
+    mask_dataset=None,
+    filter_fragments=0.10,
+    replace_sections=None,
+    merge_function: str = "watershed",
+) -> bool:
+    """Run agglomeration in parallel blocks. Requires that affinities have been
     predicted before.
 
     Args:
@@ -36,30 +36,39 @@ def extract_fragments(
         context (``tuple`` of ``int``):
             The context to consider for fragment extraction and agglomeration,
             in world units.
-        
+
         num_workers (``int``):
             How many blocks to run in parallel.
-    '''
+    """
     start: float = time.time()
     logging.info(msg=f"Reading {affs_dataset} from {affs_file}")
-    affs_ds: Array = daisy.open_ds(filename=affs_file, ds_name=affs_dataset, mode='r')
+    affs_ds: Array = daisy.open_ds(filename=affs_file, ds_name=affs_dataset, mode="r")
 
     seeds_ds: Array = open_ds(filename=seeds_file, ds_name=seeds_dataset)
     voxel_size: Coordinate = seeds_ds.voxel_size
     total_roi: Roi = affs_ds.roi
 
-    write_roi = daisy.Roi(offset=(0,)*3,shape=Coordinate(affs_ds.chunk_shape)[1:])
+    write_roi = daisy.Roi(offset=(0,) * 3, shape=Coordinate(affs_ds.chunk_shape)[1:])
 
-    min_neighborhood: int = min( filter(lambda x: x != 0, [value for sublist in neighborhood for value in sublist]))
-    max_neighborhood: int = max( filter(lambda x: x != 0, [value for sublist in neighborhood for value in sublist]))
+    min_neighborhood: int = min(
+        filter(
+            lambda x: x != 0, [value for sublist in neighborhood for value in sublist]
+        )
+    )
+    max_neighborhood: int = max(
+        filter(
+            lambda x: x != 0, [value for sublist in neighborhood for value in sublist]
+        )
+    )
 
-    read_roi: Roi = write_roi.grow(amount_neg=min_neighborhood, amount_pos=max_neighborhood)
+    read_roi: Roi = write_roi.grow(
+        amount_neg=min_neighborhood, amount_pos=max_neighborhood
+    )
 
     write_roi: Roi = write_roi * voxel_size
     read_roi: Roi = read_roi * voxel_size
 
-
-    block_directory: str = os.path.join(fragments_file,'block_nodes')
+    block_directory: str = os.path.join(fragments_file, "block_nodes")
 
     os.makedirs(name=block_directory, exist_ok=True)
 
@@ -70,15 +79,15 @@ def extract_fragments(
         total_roi=total_roi,
         voxel_size=voxel_size,
         dtype=np.uint64,
-        compressor={'id': 'zlib', 'level':5},
-        delete=True)
+        compressor={"id": "zlib", "level": 5},
+        delete=True,
+    )
 
-    num_voxels_in_block = (write_roi/affs_ds.voxel_size).size
-    
+    num_voxels_in_block = (write_roi / affs_ds.voxel_size).size
+
     # open RAG DB
     logging.info(msg="Opening RAG DB...")
 
-    
     db_host: str = "mongodb://localhost:27017"
     db_name: str = "seg"
     rag_provider = graphs.MongoDbGraphProvider(
@@ -94,7 +103,7 @@ def extract_fragments(
     logging.info("RAG file opened")
 
     task = daisy.Task(
-        task_id='ExtractFragmentsBlockwiseTask',
+        task_id="ExtractFragmentsBlockwiseTask",
         total_roi=total_roi,
         read_roi=read_roi,
         write_roi=write_roi,
@@ -112,60 +121,61 @@ def extract_fragments(
             filter_fragments=filter_fragments,
             replace_sections=replace_sections,
             mask_file=mask_file,
-            mask_dataset=mask_dataset),
+            mask_dataset=mask_dataset,
+        ),
         check_function=None,
         num_workers=num_workers,
         max_retries=7,
         read_write_conflict=False,
-        fit='shrink')
+        fit="shrink",
+    )
 
     done: bool = daisy.run_blockwise(tasks=[task])
 
     if not done:
         raise RuntimeError("At least one block failed!")
-    
+
     end: float = time.time()
 
     seconds: float = end - start
-    minutes: float = seconds/60
-    hours: float = minutes/60
-    days: float = hours/24
+    minutes: float = seconds / 60
+    hours: float = minutes / 60
+    days: float = hours / 24
 
-    print('Total time to extract fragments: %f seconds / %f minutes / %f hours / %f days' % (seconds, minutes, hours, days))
+    print(
+        "Total time to extract fragments: %f seconds / %f minutes / %f hours / %f days"
+        % (seconds, minutes, hours, days)
+    )
     return done
 
-def extract_fragments_worker(
-        block,
-        rag_provider,
-        ds_in_file,
-        ds_in_dataset,
-        fragments_file,
-        fragments_dataset,
-        context,
-        num_voxels_in_block,
-        fragments_in_xy,
-        epsilon_agglomerate,
-        filter_fragments,
-        replace_sections,
-        mask_file,
-        mask_dataset) -> None:
 
+def extract_fragments_worker(
+    block,
+    rag_provider,
+    ds_in_file,
+    ds_in_dataset,
+    fragments_file,
+    fragments_dataset,
+    context,
+    num_voxels_in_block,
+    fragments_in_xy,
+    epsilon_agglomerate,
+    filter_fragments,
+    replace_sections,
+    mask_file,
+    mask_dataset,
+) -> None:
     logging.info("Reading ds_in from %s", ds_in_file)
-    ds_in: Array = daisy.open_ds(filename=ds_in_file, ds_name=ds_in_dataset, mode='r')
+    ds_in: Array = daisy.open_ds(filename=ds_in_file, ds_name=ds_in_dataset, mode="r")
 
     logging.info("Reading fragments from %s", fragments_file)
     fragments: Array = daisy.open_ds(
-        filename=fragments_file,
-        ds_name=fragments_dataset,
-        mode='r+')
+        filename=fragments_file, ds_name=fragments_dataset, mode="r+"
+    )
 
     if mask_dataset is not None:
-
         logging.info(msg="Reading mask from {}".format(mask_file))
-        mask: Array = daisy.open_ds(
-            filename=mask_file,
-            ds_name=mask_dataset,
-            mode='r')
+        mask: Array = daisy.open_ds(filename=mask_file, ds_name=mask_dataset, mode="r")
 
     else:
         mask = None
@@ -186,6 +196,5 @@ def extract_fragments_worker(
         fragments_in_xy=fragments_in_xy,
         epsilon_agglomerate=epsilon_agglomerate,
         filter_fragments=filter_fragments,
-        replace_sections=replace_sections)
-
-        
+        replace_sections=replace_sections,
+    )

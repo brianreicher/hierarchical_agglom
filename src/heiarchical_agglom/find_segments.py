@@ -11,14 +11,17 @@ from funlib.segment.graphs.impl import connected_components
 
 logging.getLogger().setLevel(logging.INFO)
 
-def find_segments(affs_file,
-        affs_dataset,
-        fragments_file,
-        fragments_dataset,        
-        thresholds_minmax:list=[0,1],
-        thresholds_step:float=0.02,
-        merge_function:str="watershed",) -> bool:
-    '''
+
+def find_segments(
+    affs_file,
+    affs_dataset,
+    fragments_file,
+    fragments_dataset,
+    thresholds_minmax: list = [0, 1],
+    thresholds_step: float = 0.02,
+    merge_function: str = "watershed",
+) -> bool:
+    """
     Args:
         fragments_file (``string``):
             Path to file (zarr/n5) containing fragments (supervoxels).
@@ -47,17 +50,15 @@ def find_segments(affs_file,
         roi_shape (array-like of ``int``, optional):
             The shape of the ROI. Entries can be ``None`` to indicate
             unboundedness.
-    '''
-    
+    """
+
     logging.info("Reading graph")
     start: float = time.time()
-    
 
-    fragments: Array = open_ds(fragments_file,fragments_dataset)
-
+    fragments: Array = open_ds(fragments_file, fragments_dataset)
 
     affs: Array = open_ds(filename=affs_file, ds_name=affs_dataset)
-    roi : Roi = affs.roi
+    roi: Roi = affs.roi
 
     db_host: str = "mongodb://localhost:27017"
     db_name: str = "seg"
@@ -71,62 +72,68 @@ def find_segments(affs_file,
         edges_collection=f"hglom_edges_{merge_function}",
     )
     node_attrs: list = graph_provider.read_nodes(roi=roi)
-    edge_attrs: list = graph_provider.read_edges(roi=roi,nodes=node_attrs)
+    edge_attrs: list = graph_provider.read_edges(roi=roi, nodes=node_attrs)
 
     logging.info(msg=f"Read graph in {time.time() - start}")
 
-    if 'id' not in node_attrs[0]:
-        logging.info(msg='No nodes found in roi %s' % roi)
+    if "id" not in node_attrs[0]:
+        logging.info(msg="No nodes found in roi %s" % roi)
         return
 
-    nodes: list = [node['id'] for node in node_attrs]
-    
-    edge_u: list = [np.uint64(edge['u']) for edge in edge_attrs]
-    edge_v: list = [np.uint64(edge['v']) for edge in edge_attrs]
+    nodes: list = [node["id"] for node in node_attrs]
 
-    edges: np.ndarray = np.stack(
-                arrays=[
-                    edge_u,
-                    edge_v
-                ],
-            axis=1)
+    edge_u: list = [np.uint64(edge["u"]) for edge in edge_attrs]
+    edge_v: list = [np.uint64(edge["v"]) for edge in edge_attrs]
+
+    edges: np.ndarray = np.stack(arrays=[edge_u, edge_v], axis=1)
 
     scores: list = [np.float32(edge["merge_score"]) for edge in edge_attrs]
 
-
     logging.info(msg=f"Complete RAG contains {len(nodes)} nodes, {len(edges)} edges")
 
-    out_dir: str = os.path.join(
-        fragments_file,
-        'luts',
-        'fragment_segment')
+    out_dir: str = os.path.join(fragments_file, "luts", "fragment_segment")
 
     os.makedirs(out_dir, exist_ok=True)
 
-    thresholds = [round(i,2) for i in np.arange(
-        float(thresholds_minmax[0]),
-        float(thresholds_minmax[1]),
-        thresholds_step)]
+    thresholds = [
+        round(i, 2)
+        for i in np.arange(
+            float(thresholds_minmax[0]), float(thresholds_minmax[1]), thresholds_step
+        )
+    ]
 
-    #parallel processing
+    # parallel processing
     start = time.time()
 
     with mp.Pool(processes=4) as pool:
-
-        pool.starmap(get_connected_components,[(np.asarray(nodes),np.asarray(edges),np.asarray(scores),t,f"hglom_edges_{merge_function}",out_dir) for t in thresholds])
+        pool.starmap(
+            get_connected_components,
+            [
+                (
+                    np.asarray(nodes),
+                    np.asarray(edges),
+                    np.asarray(scores),
+                    t,
+                    f"hglom_edges_{merge_function}",
+                    out_dir,
+                )
+                for t in thresholds
+            ],
+        )
 
     logging.info(f"Created and stored lookup tables in {time.time() - start}")
 
     return True
 
-def get_connected_components(
-        nodes,
-        edges,
-        scores,
-        threshold,
-        edges_collection,
-        out_dir,):
 
+def get_connected_components(
+    nodes,
+    edges,
+    scores,
+    threshold,
+    edges_collection,
+    out_dir,
+):
     logging.info(f"Getting CCs for threshold {threshold}...")
     components = connected_components(nodes, edges, scores, threshold)
 
