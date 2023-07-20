@@ -13,9 +13,9 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 def extract_segmentation(
-    fragments_file,
-    fragments_dataset,
-    edges_collection,
+    fragments_file:str,
+    fragments_dataset:str,
+    merge_function:str,
     block_size: list = [64, 64, 64],
     threshold: float = 0.48,
     num_workers: int = 7,
@@ -86,7 +86,7 @@ def extract_segmentation(
             delete=True,
         )
 
-        lut_filename: str = f"seg_{edges_collection}_{int(threshold*100)}"
+        lut_filename: str = f"seg_{merge_function}_{int(threshold*100)}"
 
         lut: str = os.path.join(lut_dir, lut_filename + ".npz")
 
