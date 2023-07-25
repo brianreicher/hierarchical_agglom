@@ -72,7 +72,7 @@ def agglomerate(
     total_roi = fragments.roi
 
     task = daisy.Task(
-        task_id="AgglomerateBlockwiseTask",
+        task_id="AgglomerateTask",
         total_roi=total_roi,
         read_roi=read_roi,
         write_roi=write_roi,

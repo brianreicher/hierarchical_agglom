@@ -103,7 +103,7 @@ def extract_fragments(
     logging.info("RAG file opened")
 
     task = daisy.Task(
-        task_id="ExtractFragmentsBlockwiseTask",
+        task_id="ExtractFragmentsTask",
         total_roi=total_roi,
         read_roi=read_roi,
         write_roi=write_roi,

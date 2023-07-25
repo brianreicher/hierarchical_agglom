@@ -13,9 +13,9 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 def extract_segmentation(
-    fragments_file:str,
-    fragments_dataset:str,
-    merge_function:str,
+    fragments_file: str,
+    fragments_dataset: str,
+    merge_function: str,
     block_size: list = [64, 64, 64],
     threshold: float = 0.48,
     num_workers: int = 7,
@@ -102,7 +102,7 @@ def extract_segmentation(
         logging.info(msg=f"Relabelling fragments to {num_segments} segments")
 
         task = daisy.Task(
-            task_id="ExtractSegmentationTask",
+            task_id="ExtractSegmentsTask",
             total_roi=total_roi,
             read_roi=read_roi,
             write_roi=write_roi,

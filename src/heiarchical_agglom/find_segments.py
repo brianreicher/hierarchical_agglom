@@ -1,11 +1,9 @@
-import json
 import logging
 import multiprocessing as mp
 import numpy as np
-from funlib.geometry import Coordinate, Roi
+from funlib.geometry import Roi
 from funlib.persistence import open_ds, graphs, Array
 import os
-import sys
 import time
 from funlib.segment.graphs.impl import connected_components
 
@@ -13,10 +11,10 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 def find_segments(
-    affs_file,
-    affs_dataset,
-    fragments_file,
-    fragments_dataset,
+    affs_file: str,
+    affs_dataset: str,
+    fragments_file: str,
+    fragments_dataset: str,
     thresholds_minmax: list = [0, 1],
     thresholds_step: float = 0.02,
     merge_function: str = "watershed",

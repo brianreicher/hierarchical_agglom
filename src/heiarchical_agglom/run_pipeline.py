@@ -7,36 +7,36 @@ from .agglomerate_blockwise import agglomerate
 from .find_segments import find_segments
 from .extract_segments_from_lut import extract_segmentation
 from .utils import neighborhood
+import time 
 
 
-class PostProcessor():
-    
-    def __init__(self,
-                affs_file: str,
-                affs_dataset: str,
-                context: Optional[Coordinate] = None,
-                sample_name:Optional[str] = None,
-                fragments_file: Optional[str] = "",
-                fragments_dataset: Optional[str] = "frags",
-                seg_file: Optional[str] = "",
-                seg_dataset: Optional[str] = "seg",
-                seeds_file: Optional[str]=None,
-                seeds_dataset: Optional[str]=None, 
-                mask_file: Optional[str] = None,
-                mask_dataset: Optional[str] = None,
-                filter_val: Optional[float] = 0.5,
-                neighborhood_length: Optional[int] = 12,
-                nworkers_frags: Optional[int] = 25,
-                merge_function: Optional[str] = "watershed",
-                epsilon_agglomerate: Optional[float] = 0.05,
-                nworkers_agglom: Optional[int] = 7,
-                thresholds_minmax: Optional[list] = [0,1],
-                thresholds_step: Optional[float] = 0.02,
-                block_size: Optional[list] = [64, 64, 64],
-                lut_threshold: Optional[float] = 0.48,
-                nworkers_lut: Optional[int] = 7,
-) -> None:
-        
+class PostProcessor:
+    def __init__(
+        self,
+        affs_file: str,
+        affs_dataset: str,
+        context: Optional[Coordinate] = None,
+        sample_name: Optional[str] = None,
+        fragments_file: Optional[str] = "",
+        fragments_dataset: Optional[str] = "frags",
+        seg_file: Optional[str] = "",
+        seg_dataset: Optional[str] = "seg",
+        seeds_file: Optional[str] = None,
+        seeds_dataset: Optional[str] = None,
+        mask_file: Optional[str] = None,
+        mask_dataset: Optional[str] = None,
+        filter_val: Optional[float] = 0.5,
+        neighborhood_length: Optional[int] = 12,
+        nworkers_frags: Optional[int] = 25,
+        merge_function: Optional[str] = "watershed",
+        epsilon_agglomerate: Optional[float] = 0.05,
+        nworkers_agglom: Optional[int] = 7,
+        thresholds_minmax: Optional[list] = [0, 1],
+        thresholds_step: Optional[float] = 0.02,
+        block_size: Optional[list] = [64, 64, 64],
+        lut_threshold: Optional[float] = 0.48,
+        nworkers_lut: Optional[int] = 7,
+    ) -> None:
         # set sample name
         self.sample_name: str = sample_name
 
@@ -66,8 +66,10 @@ class PostProcessor():
         if context is not None:
             self.context: Coordinate = context
         else:
-            self.context: Coordinate = Coordinate(np.max(a=np.abs(neighborhood[:neighborhood_length]), axis=0))
-        
+            self.context: Coordinate = Coordinate(
+                np.max(a=np.abs(neighborhood[:neighborhood_length]), axis=0)
+            )
+
         self.filter_val: float = filter_val
         self.merge_function: str = merge_function
         self.epsilon_agglomerate: float = epsilon_agglomerate
@@ -81,7 +83,9 @@ class PostProcessor():
         self.nworkers_lut: int = nworkers_lut
         self.block_size: list = block_size
 
-    def run_hierarchical_agglom_segmentation_pipeline(self,) -> bool:
+    def run_hierarchical_agglom_segmentation_pipeline(
+        self,
+    ) -> bool:
         if self.sample_name is None:
             self.sample_name: str = "htem" + str(
                 hash(
@@ -135,6 +139,6 @@ class PostProcessor():
                 fragments_dataset=self.fragments_dataset,
                 block_size=self.block_size,
                 threshold=self.lut_threshold,
-                num_workers=self.nworkers_lut
+                num_workers=self.nworkers_lut,
             )
         return success
