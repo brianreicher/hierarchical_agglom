@@ -27,7 +27,7 @@ class PostProcessor:
         mask_dataset: Optional[str] = None,
         filter_val: Optional[float] = 0.5,
         neighborhood_length: Optional[int] = 12,
-        nworkers_frags: Optional[int] = 25,
+        nworkers_frags: Optional[int] = 20,
         merge_function: Optional[str] = "watershed",
         epsilon_agglomerate: Optional[float] = 0.05,
         nworkers_agglom: Optional[int] = 7,
@@ -111,6 +111,7 @@ class PostProcessor:
             epsilon_agglomerate=self.epsilon_agglomerate,
             merge_function=self.merge_function,
         )
+
         if success:
             success: bool = agglomerate(
                 affs_file=self.affs_file,

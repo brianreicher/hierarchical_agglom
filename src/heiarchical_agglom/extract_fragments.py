@@ -48,7 +48,7 @@ def extract_fragments(
     voxel_size: Coordinate = seeds_ds.voxel_size
     total_roi: Roi = affs_ds.roi
 
-    write_roi = daisy.Roi(offset=(0,) * 3, shape=Coordinate(affs_ds.chunk_shape)[1:])
+    write_roi = Roi(offset=(0,) * 3, shape=Coordinate(affs_ds.chunk_shape)[1:])
 
     min_neighborhood: int = min(
         filter(
@@ -100,9 +100,9 @@ def extract_fragments(
         nodes_collection=f"hglom_nodes",
         meta_collection=f"hglom_meta",
     )
-    logging.info("RAG file opened")
+    logging.info("RAG db opened")
 
-    task = daisy.Task(
+    task: daisy.Task = daisy.Task(
         task_id="ExtractFragmentsTask",
         total_roi=total_roi,
         read_roi=read_roi,
@@ -123,9 +123,7 @@ def extract_fragments(
             mask_file=mask_file,
             mask_dataset=mask_dataset,
         ),
-        check_function=None,
         num_workers=num_workers,
-        max_retries=7,
         read_write_conflict=False,
         fit="shrink",
     )
