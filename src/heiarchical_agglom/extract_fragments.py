@@ -42,7 +42,7 @@ def extract_fragments(
     """
     start: float = time.time()
     logging.info(msg=f"Reading {affs_dataset} from {affs_file}")
-    affs_ds: Array = daisy.open_ds(filename=affs_file, ds_name=affs_dataset, mode="r")
+    affs_ds: Array = open_ds(filename=affs_file, ds_name=affs_dataset, mode="r")
 
     seeds_ds: Array = open_ds(filename=seeds_file, ds_name=seeds_dataset)
     voxel_size: Coordinate = seeds_ds.voxel_size
@@ -163,36 +163,39 @@ def extract_fragments_worker(
     mask_file,
     mask_dataset,
 ) -> None:
-    logging.info("Reading ds_in from %s", ds_in_file)
-    ds_in: Array = daisy.open_ds(filename=ds_in_file, ds_name=ds_in_dataset, mode="r")
+    try:
+        logging.info("Reading ds_in from %s", ds_in_file)
+        ds_in: Array = open_ds(filename=ds_in_file, ds_name=ds_in_dataset, mode="r")
 
-    logging.info("Reading fragments from %s", fragments_file)
-    fragments: Array = daisy.open_ds(
-        filename=fragments_file, ds_name=fragments_dataset, mode="r+"
-    )
+        logging.info("Reading fragments from %s", fragments_file)
+        fragments: Array = open_ds(
+            filename=fragments_file, ds_name=fragments_dataset, mode="r+"
+        )
 
-    if mask_dataset is not None:
-        logging.info(msg="Reading mask from {}".format(mask_file))
-        mask: Array = daisy.open_ds(filename=mask_file, ds_name=mask_dataset, mode="r")
+        if mask_dataset is not None:
+            logging.info(msg="Reading mask from {}".format(mask_file))
+            mask: Array = open_ds(filename=mask_file, ds_name=mask_dataset, mode="r")
 
-    else:
-        mask = None
+        else:
+            mask = None
 
-    logging.info("block read roi begin: %s", block.read_roi.offset)
-    logging.info("block read roi shape: %s", block.read_roi.shape)
-    logging.info("block write roi begin: %s", block.write_roi.offset)
-    logging.info("block write roi shape: %s", block.write_roi.shape)
+        logging.info("block read roi begin: %s", block.read_roi.offset)
+        logging.info("block read roi shape: %s", block.read_roi.shape)
+        logging.info("block write roi begin: %s", block.write_roi.offset)
+        logging.info("block write roi shape: %s", block.write_roi.shape)
 
-    watershed_in_block(
-        affs=ds_in,
-        block=block,
-        context=context,
-        rag_provider=rag_provider,
-        fragments_out=fragments,
-        num_voxels_in_block=num_voxels_in_block,
-        mask=mask,
-        fragments_in_xy=fragments_in_xy,
-        epsilon_agglomerate=epsilon_agglomerate,
-        filter_fragments=filter_fragments,
-        replace_sections=replace_sections,
-    )
+        watershed_in_block(
+            affs=ds_in,
+            block=block,
+            context=context,
+            rag_provider=rag_provider,
+            fragments_out=fragments,
+            num_voxels_in_block=num_voxels_in_block,
+            mask=mask,
+            fragments_in_xy=fragments_in_xy,
+            epsilon_agglomerate=epsilon_agglomerate,
+            filter_fragments=filter_fragments,
+            replace_sections=replace_sections,
+        )
+    except:
+        pass
