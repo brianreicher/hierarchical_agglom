@@ -101,32 +101,43 @@ def extract_fragments(
         meta_collection=f"hglom_meta",
     )
     logging.info("RAG db opened")
-
+    fragments_out: Array = open_ds(filename=fragments_file, ds_name=fragments_dataset, mode="r+")
     task: daisy.Task = daisy.Task(
         task_id="ExtractFragmentsTask",
         total_roi=total_roi,
         read_roi=read_roi,
         write_roi=write_roi,
-        process_function=lambda b: extract_fragments_worker(
-            block=b,
-            rag_provider=rag_provider,
-            ds_in_file=affs_file,
-            ds_in_dataset=affs_dataset,
-            fragments_file=fragments_file,
-            fragments_dataset=fragments_dataset,
-            context=context,
-            num_voxels_in_block=num_voxels_in_block,
-            fragments_in_xy=fragments_in_xy,
-            epsilon_agglomerate=epsilon_agglomerate,
-            filter_fragments=filter_fragments,
-            replace_sections=replace_sections,
-            mask_file=mask_file,
-            mask_dataset=mask_dataset,
-        ),
+        process_function=lambda block: watershed_in_block(
+                                            affs=affs_ds,
+                                            block=block,
+                                            context=context,
+                                            rag_provider=rag_provider,
+                                            fragments_out=fragments_out,
+                                            num_voxels_in_block=num_voxels_in_block,
+                                            mask=None,
+                                            fragments_in_xy=fragments_in_xy,
+                                            epsilon_agglomerate=epsilon_agglomerate,
+                                            filter_fragments=filter_fragments,
+                                            replace_sections=replace_sections),
+        # process_function=lambda b: extract_fragments_worker(
+        #     block=b,
+        #     rag_provider=rag_provider,
+        #     ds_in_file=affs_file,
+        #     ds_in_dataset=affs_dataset,
+        #     fragments_file=fragments_file,
+        #     fragments_dataset=fragments_dataset,
+        #     context=context,
+        #     num_voxels_in_block=num_voxels_in_block,
+        #     fragments_in_xy=fragments_in_xy,
+        #     epsilon_agglomerate=epsilon_agglomerate,
+        #     filter_fragments=filter_fragments,
+        #     replace_sections=replace_sections,
+        #     mask_file=mask_file,
+        #     mask_dataset=mask_dataset,
+        # ),
         num_workers=num_workers,
         read_write_conflict=False,
-        fit="shrink",
-    )
+        fit="shrink",)
 
     done: bool = daisy.run_blockwise(tasks=[task])
 
