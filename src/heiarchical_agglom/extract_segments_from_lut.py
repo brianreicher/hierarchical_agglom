@@ -16,7 +16,7 @@ def extract_segmentation(
     fragments_file: str,
     fragments_dataset: str,
     merge_function: str,
-    block_size: list = [64, 64, 64],
+    block_size: list = [66, 66, 66],
     threshold: float = 0.48,
     num_workers: int = 7,
 ) -> bool:
@@ -58,6 +58,7 @@ def extract_segmentation(
     total_roi: Roi = fragments.roi
     read_roi = daisy.Roi(offset=(0,) * 3, shape=Coordinate(block_size))
     write_roi: Roi = read_roi
+    voxel_size: Coordinate = fragments.voxel_size
 
     logging.info(msg="Preparing segmentation dataset...")
 
@@ -75,18 +76,19 @@ def extract_segmentation(
         seg_name: str = f"segmentation_{threshold}"
 
         start: float = time.time()
-
+        logging.info(fragments.roi)
+        logging.info(fragments.voxel_size)
         segmentation = daisy.prepare_ds(
             filename=fragments_file,
             ds_name=seg_name,
-            total_roi=fragments.roi,
-            voxel_size=fragments.voxel_size,
+            total_roi=total_roi,
+            voxel_size=voxel_size,
             dtype=np.uint64,
             write_roi=write_roi,
             delete=True,
         )
 
-        lut_filename: str = f"seg_{merge_function}_{int(threshold*100)}"
+        lut_filename: str = f"seg_hglom_edges_{merge_function}_{int(threshold*100)}"
 
         lut: str = os.path.join(lut_dir, lut_filename + ".npz")
 

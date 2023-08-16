@@ -17,7 +17,7 @@ def find_segments(
     fragments_dataset: str,
     thresholds_minmax: list = [0, 1],
     thresholds_step: float = 0.02,
-    merge_function: str = "watershed",
+    merge_function: str = "hist_quant_75",
 ) -> bool:
     """
     Args:
