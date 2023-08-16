@@ -115,9 +115,9 @@ def agglomerate_worker(
     affs_dataset,
     fragments_file,
     fragments_dataset,
-    merge_function: str = "watershed",
+    merge_function: str = "hist_quant_75",
 ) -> None:
-    waterz_merge_function: str = {
+    waterz_merge_function: dict = {
         "hist_quant_10": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 10, ScoreValue, 256, false>>",
         "hist_quant_10_initmax": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 10, ScoreValue, 256, true>>",
         "hist_quant_25": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 25, ScoreValue, 256, false>>",

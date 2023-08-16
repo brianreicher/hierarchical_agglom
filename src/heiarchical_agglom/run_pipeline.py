@@ -28,7 +28,7 @@ class PostProcessor:
         filter_val: Optional[float] = 0.5,
         neighborhood_length: Optional[int] = 12,
         nworkers_frags: Optional[int] = 20,
-        merge_function: Optional[str] = "watershed",
+        merge_function: Optional[str] = "hist_quant_75",
         epsilon_agglomerate: Optional[float] = 0.05,
         nworkers_agglom: Optional[int] = 7,
         thresholds_minmax: Optional[list] = [0, 1],
@@ -96,21 +96,22 @@ class PostProcessor:
                     )
                 )
             )
-        success: bool = extract_fragments(
-            affs_file=self.affs_file,
-            affs_dataset=self.affs_dataset,
-            fragments_file=self.fragments_file,
-            fragments_dataset=self.fragments_dataset,
-            seeds_file=self.seeds_file,
-            seeds_dataset=self.seeds_dataset,
-            mask_file=self.mask_file,
-            mask_dataset=self.mask_dataset,
-            num_workers=self.nworkers_frags,
-            context=self.context,
-            filter_fragments=self.filter_val,
-            epsilon_agglomerate=self.epsilon_agglomerate,
-            merge_function=self.merge_function,
-        )
+        success: bool = True
+        # extract_fragments(
+        #     affs_file=self.affs_file,
+        #     affs_dataset=self.affs_dataset,
+        #     fragments_file=self.fragments_file,
+        #     fragments_dataset=self.fragments_dataset,
+        #     seeds_file=self.seeds_file,
+        #     seeds_dataset=self.seeds_dataset,
+        #     mask_file=self.mask_file,
+        #     mask_dataset=self.mask_dataset,
+        #     num_workers=self.nworkers_frags,
+        #     context=self.context,
+        #     filter_fragments=self.filter_val,
+        #     epsilon_agglomerate=self.epsilon_agglomerate,
+        #     merge_function=self.merge_function,
+        # )
 
         if success:
             success: bool = agglomerate(
