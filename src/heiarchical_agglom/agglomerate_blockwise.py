@@ -16,7 +16,7 @@ def agglomerate(
     fragments_dataset,
     context: tuple,
     num_workers: int = 7,
-    merge_function: str = "watershed",
+    merge_function: str = "hist_quant_75",
 ) -> None:
     """Run agglomeration in parallel blocks. Requires that affinities have been
     predicted before.
@@ -59,9 +59,7 @@ def agglomerate(
         )
     )
 
-    read_roi: Roi = write_roi.grow(
-        amount_neg=min_neighborhood, amount_pos=max_neighborhood
-    )
+    read_roi: Roi = write_roi#.grow(amount_neg=min_neighborhood, amount_pos=max_neighborhood)
 
     write_roi: Roi = write_roi * voxel_size
     read_roi: Roi = read_roi * voxel_size
@@ -69,24 +67,56 @@ def agglomerate(
     logging.info("Reading fragments from %s", fragments_file)
 
     context = Coordinate(context)
+
     total_roi = fragments.roi
+    waterz_merge_function: dict = {
+        "hist_quant_10": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 10, ScoreValue, 256, false>>",
+        "hist_quant_10_initmax": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 10, ScoreValue, 256, true>>",
+        "hist_quant_25": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 25, ScoreValue, 256, false>>",
+        "hist_quant_25_initmax": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 25, ScoreValue, 256, true>>",
+        "hist_quant_50": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 50, ScoreValue, 256, false>>",
+        "hist_quant_50_initmax": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 50, ScoreValue, 256, true>>",
+        "hist_quant_75": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 75, ScoreValue, 256, false>>",
+        "hist_quant_75_initmax": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 75, ScoreValue, 256, true>>",
+        "hist_quant_90": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 90, ScoreValue, 256, false>>",
+        "hist_quant_90_initmax": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 90, ScoreValue, 256, true>>",
+        "mean": "OneMinus<MeanAffinity<RegionGraphType, ScoreValue>>",
+    }[merge_function]
+
+    logging.info(f"Reading affs from {affs_file}")
+    affs: Array = daisy.open_ds(filename=affs_file, ds_name=affs_dataset)
+
+    # opening RAG file
+    logging.info(msg="Opening RAG file...")
+
+    db_host: str = "mongodb://localhost:27017"
+    db_name: str = "seg"
+    rag_provider = graphs.MongoDbGraphProvider(
+        db_name=db_name,
+        host=db_host,
+        mode="r+",
+        directed=False,
+        position_attribute=["center_z", "center_y", "center_x"],
+        nodes_collection="hglom_nodes",
+        edges_collection=f"hglom_edges_{merge_function}",
+    )
+
+    logging.info(msg="RAG file opened")
+
 
     task = daisy.Task(
         task_id="AgglomerateTask",
         total_roi=total_roi,
         read_roi=read_roi,
         write_roi=write_roi,
-        process_function=lambda b: agglomerate_worker(
-            block=b,
-            affs_file=affs_file,
-            affs_dataset=affs_dataset,
-            fragments_file=fragments_file,
-            fragments_dataset=fragments_dataset,
-            merge_function=merge_function,
-        ),
+        process_function = lambda block : agglomerate_in_block(affs=affs,
+                                                            fragments=fragments,
+                                                            rag_provider=rag_provider,
+                                                            block=block,
+                                                            merge_function=waterz_merge_function,
+                                                            threshold=1.0),
         num_workers=num_workers,
         read_write_conflict=False,
-        timeout=5,
         fit="shrink",
     )
 
