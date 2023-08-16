@@ -61,9 +61,7 @@ def extract_fragments(
         )
     )
 
-    read_roi: Roi = write_roi.grow(
-        amount_neg=min_neighborhood, amount_pos=max_neighborhood
-    )
+    read_roi: Roi = write_roi#.grow(amount_neg=min_neighborhood, amount_pos=max_neighborhood)
 
     write_roi: Roi = write_roi * voxel_size
     read_roi: Roi = read_roi * voxel_size
@@ -119,22 +117,6 @@ def extract_fragments(
                                             epsilon_agglomerate=epsilon_agglomerate,
                                             filter_fragments=filter_fragments,
                                             replace_sections=replace_sections),
-        # process_function=lambda b: extract_fragments_worker(
-        #     block=b,
-        #     rag_provider=rag_provider,
-        #     ds_in_file=affs_file,
-        #     ds_in_dataset=affs_dataset,
-        #     fragments_file=fragments_file,
-        #     fragments_dataset=fragments_dataset,
-        #     context=context,
-        #     num_voxels_in_block=num_voxels_in_block,
-        #     fragments_in_xy=fragments_in_xy,
-        #     epsilon_agglomerate=epsilon_agglomerate,
-        #     filter_fragments=filter_fragments,
-        #     replace_sections=replace_sections,
-        #     mask_file=mask_file,
-        #     mask_dataset=mask_dataset,
-        # ),
         num_workers=num_workers,
         read_write_conflict=False,
         fit="shrink",)
