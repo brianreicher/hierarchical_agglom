@@ -96,45 +96,45 @@ class PostProcessor:
                     )
                 )
             )
-        # success: bool = extract_fragments(
-        #     affs_file=self.affs_file,
-        #     affs_dataset=self.affs_dataset,
-        #     fragments_file=self.fragments_file,
-        #     fragments_dataset=self.fragments_dataset,
-        #     seeds_file=self.seeds_file,
-        #     seeds_dataset=self.seeds_dataset,
-        #     mask_file=self.mask_file,
-        #     mask_dataset=self.mask_dataset,
-        #     num_workers=self.nworkers_frags,
-        #     context=self.context,
-        #     filter_fragments=self.filter_val,
-        #     epsilon_agglomerate=self.epsilon_agglomerate,
-        #     merge_function=self.merge_function,
-        # )
+        success: bool = extract_fragments(
+            affs_file=self.affs_file,
+            affs_dataset=self.affs_dataset,
+            fragments_file=self.fragments_file,
+            fragments_dataset=self.fragments_dataset,
+            seeds_file=self.seeds_file,
+            seeds_dataset=self.seeds_dataset,
+            mask_file=self.mask_file,
+            mask_dataset=self.mask_dataset,
+            num_workers=self.nworkers_frags,
+            context=self.context,
+            filter_fragments=self.filter_val,
+            epsilon_agglomerate=self.epsilon_agglomerate,
+            merge_function=self.merge_function,
+        )
 
-        # if success:
-        #     success: bool = agglomerate(
-        #         affs_file=self.affs_file,
-        #         affs_dataset=self.affs_dataset,
-        #         fragments_file=self.fragments_file,
-        #         fragments_dataset=self.fragments_dataset,
-        #         context=self.context,
-        #         num_workers=self.nworkers_agglom,
-        #         merge_function=self.merge_function,
-        #     )
+        if success:
+            success: bool = agglomerate(
+                affs_file=self.affs_file,
+                affs_dataset=self.affs_dataset,
+                fragments_file=self.fragments_file,
+                fragments_dataset=self.fragments_dataset,
+                context=self.context,
+                num_workers=self.nworkers_agglom,
+                merge_function=self.merge_function,
+            )
 
-        # if success:
-        #     success: bool = find_segments(
-        #         affs_file=self.affs_file,
-        #         affs_dataset=self.affs_dataset,
-        #         fragments_file=self.fragments_file,
-        #         fragments_dataset=self.fragments_dataset,
-        #         thresholds_minmax=self.thresholds_minmax,
-        #         thresholds_step=self.threholds_step,
-        #         merge_function=self.merge_function,
-        #     )
+        if success:
+            success: bool = find_segments(
+                affs_file=self.affs_file,
+                affs_dataset=self.affs_dataset,
+                fragments_file=self.fragments_file,
+                fragments_dataset=self.fragments_dataset,
+                thresholds_minmax=self.thresholds_minmax,
+                thresholds_step=self.threholds_step,
+                merge_function=self.merge_function,
+            )
 
-        if True:
+        if success:
             success: bool = extract_segmentation(
                 fragments_file=self.fragments_file,
                 fragments_dataset=self.fragments_dataset,
