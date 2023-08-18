@@ -38,11 +38,30 @@ Install `hierarchical_agglom`:
 ```bash
 pip install git+https://github.com/brianreicher/hierarchical_agglom.git
 ```
-
 ### Features
 
+* A hierarchical-merge-tree implementation to go from affininities to a full segmentation
+* Pipeline utilizes a MongoDB RAG along with seeded data to produce successive iterations of segmentations
+* Should handle up to 6 dimensional arrays of fragments (7 dimensions if you include offsets in affinities) but only tested on 2 and 3 dimensions
 
 ### Usage
+
+Example usage for generating a post-processing segmentation from affinities:
+
+```python
+pp: hglom.PostProcessor = hglom.PostProcessor(
+            affs_file="../data/raw_predictions.zarr",
+            affs_dataset="pred_affs_latest",
+            seeds_file="../data/raw_predictions.zarr",
+            seeds_dataset="training_gt_rasters",
+        )
+pp.run_corrected_segmentation_pipeline()
+```
+where:
+* `affs_file` is a path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
+* `affs_dataset` is the name of the affinities dataset in the affs_file to read from.
+* `seeds_file` is a path (relative or absolute) to the zarr file containing seeds.
+* `seeds_dataset` is the name of the seeds dataset in the seeds file to read from.
 
 ### Credits
 
