@@ -49,6 +49,8 @@ pip install git+https://github.com/brianreicher/hierarchical_agglom.git
 Example usage for generating a post-processing segmentation from affinities:
 
 ```python
+import hglom
+
 pp: hglom.PostProcessor = hglom.PostProcessor(
             affs_file="../data/raw_predictions.zarr",
             affs_dataset="pred_affs_latest",
