@@ -16,15 +16,15 @@ def extract_fragments(
     affs_dataset: str,
     fragments_file: str,
     fragments_dataset: str,
-    seeds_file: str,
-    seeds_dataset: str,
     context: tuple,
     num_workers: int = 20,
     fragments_in_xy=False,
     epsilon_agglomerate=0.05,
-    mask_file=None,
-    mask_dataset=None,
-    filter_fragments=0.10,
+    seeds_file: str=None,
+    seeds_dataset: str=None,
+    mask_file:str=None,
+    mask_dataset:str=None,
+    filter_fragments:float=0.10,
     replace_sections=None,
     merge_function: str = "watershed",
 ) -> bool:
@@ -44,8 +44,12 @@ def extract_fragments(
     logging.info(msg=f"Reading {affs_dataset} from {affs_file}")
     affs_ds: Array = open_ds(filename=affs_file, ds_name=affs_dataset, mode="r")
 
-    seeds_ds: Array = open_ds(filename=seeds_file, ds_name=seeds_dataset)
-    voxel_size: Coordinate = seeds_ds.voxel_size
+    try:
+        seeds_ds: Array = open_ds(filename=seeds_file, ds_name=seeds_dataset)
+        voxel_size: Coordinate = seeds_ds.voxel_size
+    except:
+        voxel_size: Coordinate = affs_ds.voxel_size
+
     total_roi: Roi = affs_ds.roi
 
     write_roi = Roi(offset=(0,) * 3, shape=Coordinate(affs_ds.chunk_shape)[1:])
