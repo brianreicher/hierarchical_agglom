@@ -62,8 +62,7 @@ def extract_segmentation(
 
     logging.info(msg="Preparing segmentation dataset...")
 
-    # thresholds: list[float] = [0.64, 0.74, 0.84, 0.94]
-    thresholds: list[float] = range(0.3, 0.75, 0.1)
+    thresholds: list[float] = [0.64, 0.74, 0.84, 0.94]
 
     if os.path.exists(path=results_file):
         with open(file=results_file, mode="r") as f:
@@ -81,6 +80,7 @@ def extract_segmentation(
             os.path.join(lut_dir, lut_filename + ".npz")
         except:
             continue
+
         start: float = time.time()
         logging.info(fragments.roi)
         logging.info(fragments.voxel_size)
