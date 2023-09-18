@@ -20,34 +20,33 @@ def find_segments(
     merge_function: str = "hist_quant_75",
 ) -> bool:
     """
+    Extract and store fragments from supervoxels and generate segmentation lookup tables.
+
     Args:
-        fragments_file (``string``):
-            Path to file (zarr/n5) containing fragments (supervoxels).
-        edges_collection (``string``):
-            The name of the MongoDB database edges collection to use.
-        thresholds_minmax (``list`` of ``int``):
-            The lower and upper bound to use (i.e [0,1]) when generating
-            thresholds.
-        thresholds_step (``float``):
-            The step size to use when generating thresholds between min/max.
-        block_size (``tuple`` of ``int``):
-            The size of one block in world units (must be multiple of voxel
-            size).
-        num_workers (``int``):
-            How many workers to use when reading the region adjacency graph
-            blockwise.
-        fragments_dataset (``string``, optional):
-            Name of fragments dataset. Include if using full fragments roi, set
-            to None if using a crop (roi_offset + roi_shape).
-        run_type (``string``, optional):
-            Can be used to direct luts into directory (e.g testing, validation,
-            etc).
-        roi_offset (array-like of ``int``, optional):
-            The starting point (inclusive) of the ROI. Entries can be ``None``
-            to indicate unboundedness.
-        roi_shape (array-like of ``int``, optional):
-            The shape of the ROI. Entries can be ``None`` to indicate
-            unboundedness.
+        affs_file (``str``):
+            Path (relative or absolute) to the zarr file where affinities are stored.
+
+        affs_dataset (``str``):
+            The name of the fragments dataset to read from in the affinities file.
+
+        fragments_file (``str``):
+            Path (relative or absolute) to the zarr file where fragments are stored.
+
+        fragments_dataset (``str``):
+            The name of the fragments dataset to read from in the fragments file.
+        
+        thresholds_minmax (``list[int]``, optional):
+            The lower and upper bounds to use for generating thresholds. Default is [0, 1].
+        
+        thresholds_step (``float``, optional):
+            The step size to use when generating thresholds between min/max. Default is 0.02.
+        
+        merge_function (``str``, optional):
+            The merge function used to create the segmentation. Default is "hist_quant_75".
+
+    Returns:
+        ``bool``:
+            True if the operation was successful, False otherwise.
     """
 
     logging.info("Reading graph")
