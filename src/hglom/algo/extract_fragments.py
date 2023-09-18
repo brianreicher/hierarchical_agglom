@@ -22,8 +22,6 @@ def extract_fragments(
     epsilon_agglomerate=0.05,
     seeds_file: str = None,
     seeds_dataset: str = None,
-    mask_file: str = None,
-    mask_dataset: str = None,
     filter_fragments: float = 0.10,
     replace_sections=None,
     merge_function: str = "watershed",
@@ -32,13 +30,48 @@ def extract_fragments(
     predicted before.
 
     Args:
+        affs_file (``str``):
+            Path (relative or absolute) to the zarr file where affinities are stored.
 
-        context (``tuple`` of ``int``):
-            The context to consider for fragment extraction and agglomeration,
-            in world units.
+        affs_dataset (``str``):
+            The name of the fragments dataset to read from in the affinities file.
+
+        fragments_file (``str``):
+            Path (relative or absolute) to the zarr file where fragments are stored.
+
+        fragments_dataset (``str``):
+            The name of the fragments dataset to read from in the fragments file.
+
+        context (``tuple(int, int, int)``):
+            The context to consider for fragment extraction and agglomeration, in world units.
 
         num_workers (``int``):
-            How many blocks to run in parallel.
+            How many blocks to run in parallel. Default is 20.
+        
+        fragments_in_xy (``bool``):
+            Flag to generate fragments in 2D or 3D. Default is False (3D).
+        
+        epsilon_agglomerate (``float``):
+            A threshold parameter for agglomeration. Default is 0.05.
+
+        seeds_file (``str``, optional):
+            Path to the zarr file containing seed information. Default is None.
+
+        seeds_dataset (``str``, optional):
+            The name of the dataset to read seeds from in the seeds file. Default is None.
+
+        filter_fragments (``float``):
+            Fraction of small fragments to filter out. Default is 0.10.
+
+        replace_sections (``NoneType`` or ``dict``, optional):
+            A dictionary mapping sections to replace. Default is None.
+
+        merge_function (``str``):
+            The method for fragment merging, e.g., "watershed". Default is "watershed".
+
+    Returns:
+        ``bool``:
+            True if fragment extraction and agglomeration were successful, False otherwise.
     """
     start: float = time.time()
     logging.info(msg=f"Reading {affs_dataset} from {affs_file}")

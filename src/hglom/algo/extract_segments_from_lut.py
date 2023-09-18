@@ -21,33 +21,33 @@ def extract_segmentation(
     threshold: float = 0.48,
     num_workers: int = 7,
 ) -> bool:
-    """
+    """Generate segmentation based on fragments using specified merge function.
+
     Args:
-        fragments_file (``string``):
-            Path to file (zarr/n5) containing fragments (supervoxels) and output segmentation.
-        fragments_dataset (``string``):
-            Name of fragments dataset (e.g `volumes/fragments`)
-        edges_collection (``string``):
-            The name of the MongoDB database edges collection to use.
-        threshold (``float``):
-            The threshold to use for generating a segmentation.
-        block_size (``tuple`` of ``int``):
-            The size of one block in world units (must be multiple of voxel
-            size).
-        out_dataset (``string``):
-            Name of segmentation dataset (e.g `volumes/segmentation`).
-        num_workers (``int``):
-            How many workers to use when reading the region adjacency graph
-            blockwise.
-        roi_offset (array-like of ``int``, optional):
-            The starting point (inclusive) of the ROI. Entries can be ``None``
-            to indicate unboundedness.
-        roi_shape (array-like of ``int``, optional):
-            The shape of the ROI. Entries can be ``None`` to indicate
-            unboundedness.
-        run_type (``string``, optional):
-            Can be used to direct luts into directory (e.g testing, validation,
-            etc).
+        fragments_file (``str``):
+            Path (relative or absolute) to the zarr file where fragments are stored.
+
+        fragments_dataset (``str``):
+            The name of the fragments dataset to read from in the fragments file.
+    
+        merge_function (``str``):
+            The method to use for merging fragments (e.g., 'hist_quant_75').
+    
+        thresholds (``list[float]``, optional):
+            List of thresholds for segmentation. Default is [0.66, 0.68, 0.70].
+
+        block_size (list of int, optional):
+            The size of one block in world units (must be a multiple of voxel size). Default is [66, 66, 66].
+
+        threshold (``float``, optional):
+            The threshold to use for generating the segmentation. Default is 0.48.
+
+        num_workers (``int``, optional):
+            Number of workers to use when reading the region adjacency graph blockwise. Default is 7.
+
+    Returns:
+        ``bool``:
+            True if segmentation generation was successful, False otherwise.
     """
 
     results_file: str = os.path.join(fragments_file, "results.json")

@@ -23,8 +23,6 @@ class PostProcessor:
         seg_dataset: Optional[str] = "seg",
         seeds_file: Optional[str] = None,
         seeds_dataset: Optional[str] = None,
-        mask_file: Optional[str] = None,
-        mask_dataset: Optional[str] = None,
         filter_val: Optional[float] = 0.5,
         neighborhood_length: Optional[int] = 12,
         nworkers_frags: Optional[int] = 20,
@@ -60,8 +58,6 @@ class PostProcessor:
             self.seg_file: str = seg_file
 
         self.seg_dataset: str = seg_dataset
-        self.mask_file: str = mask_file
-        self.mask_dataset: str = mask_dataset
 
         # dataset processing vars
         if context is not None:
@@ -105,8 +101,6 @@ class PostProcessor:
             fragments_dataset=self.fragments_dataset,
             seeds_file=self.seeds_file,
             seeds_dataset=self.seeds_dataset,
-            mask_file=self.mask_file,
-            mask_dataset=self.mask_dataset,
             num_workers=self.nworkers_frags,
             context=self.context,
             filter_fragments=self.filter_val,
