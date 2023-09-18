@@ -36,6 +36,7 @@ class PostProcessor:
         block_size: Optional[list] = [1056, 1056, 1056],
         lut_threshold: Optional[float] = 0.48,
         nworkers_lut: Optional[int] = 7,
+        thresholds: list[float] = [0.66, 0.68, 0.70]
     ) -> None:
         # set sample name
         self.sample_name: str = sample_name
@@ -76,6 +77,7 @@ class PostProcessor:
         self.thresholds_minmax: list = thresholds_minmax
         self.threholds_step: float = thresholds_step
         self.lut_threshold: float = lut_threshold
+        self.thresholds: list[float] = thresholds
 
         # Daisy vars
         self.nworkers_frags: int = nworkers_frags
@@ -139,6 +141,7 @@ class PostProcessor:
                 fragments_file=self.fragments_file,
                 fragments_dataset=self.fragments_dataset,
                 merge_function=self.merge_function,
+                thresholds=self.thresholds,
                 block_size=self.block_size,
                 threshold=self.lut_threshold,
                 num_workers=self.nworkers_lut,

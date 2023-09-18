@@ -16,6 +16,7 @@ def extract_segmentation(
     fragments_file: str,
     fragments_dataset: str,
     merge_function: str,
+    thresholds: list[float] = [0.66, 0.68, 0.70],
     block_size: list = [66, 66, 66],
     threshold: float = 0.48,
     num_workers: int = 7,
@@ -61,8 +62,6 @@ def extract_segmentation(
     voxel_size: Coordinate = fragments.voxel_size
 
     logging.info(msg="Preparing segmentation dataset...")
-
-    thresholds: list[float] = [0.66, 0.68, 0.70]
 
     if os.path.exists(path=results_file):
         with open(file=results_file, mode="r") as f:
