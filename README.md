@@ -12,6 +12,7 @@
 
 ### Installation
 A full installation script can be found in [`install.sh`](https://github.com/brianreicher/hierarchical_agglom/blob/main/install.sh), or line-by-line installs can be ran as follows:
+
 Install C++ dependencies:
 
 ```bash
