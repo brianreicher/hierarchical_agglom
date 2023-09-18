@@ -11,3 +11,4 @@ funlib.segment @ git+https://github.com/funkelab/funlib.segment
 funlib.evaluate @ git+https://github.com/pattonw/funlib.evaluate.git
 gunpowder @ git+https://github.com/funkey/gunpowder
 lsds @ git+https://github.com/funkelab/lsd
+.
