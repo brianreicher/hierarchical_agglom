@@ -2,12 +2,12 @@ from typing import Optional
 import os
 import numpy as np
 from funlib.geometry import Coordinate
-from .extract_fragments import extract_fragments
-from .agglomerate_blockwise import agglomerate
-from .find_segments import find_segments
-from .extract_segments_from_lut import extract_segmentation
+from .algo.extract_fragments import extract_fragments
+from .algo.agglomerate_blockwise import agglomerate
+from .algo.find_segments import find_segments
+from .algo.extract_segments_from_lut import extract_segmentation
 from .utils import neighborhood
-import time 
+import time
 
 
 class PostProcessor:

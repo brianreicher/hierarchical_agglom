@@ -74,7 +74,7 @@ def extract_segmentation(
 
     for threshold in thresholds:
         seg_name: str = f"segmentation_{threshold}"
-        
+
         try:
             lut_filename: str = f"seg_hglom_edges_{merge_function}_{int(threshold*100)}"
             os.path.join(lut_dir, lut_filename + ".npz")
@@ -95,7 +95,7 @@ def extract_segmentation(
         )
 
         lut_filename: str = f"seg_hglom_edges_{merge_function}_{int(threshold*100)}"
-        
+
         lut: str = os.path.join(lut_dir, lut_filename + ".npz")
 
         assert os.path.exists(path=lut), f"{lut} does not exist"

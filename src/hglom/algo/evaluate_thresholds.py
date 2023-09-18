@@ -37,7 +37,7 @@ def evaluate_thresholds(
     edges_collection,
     thresholds_minmax,
     thresholds_step,
-):
+) -> None:
     results_file = os.path.join(fragments_file, "results.json")
     results = {}
 

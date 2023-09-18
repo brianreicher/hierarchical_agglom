@@ -35,7 +35,7 @@ class ParticleSwarmOptimizer(OptimizerBase):
             merge_function=merge_function,
         )
 
-    def initialize_particles(self, population_size:int=50) -> list:
+    def initialize_particles(self, population_size: int = 50) -> list:
         particles: list = []
         for _ in range(population_size):
             position: tuple[float, float] = (
@@ -61,13 +61,16 @@ class ParticleSwarmOptimizer(OptimizerBase):
     def evaluate_particle(self, particle) -> np.floating:
         adj_bias, lr_bias = particle["position"]
         score: np.floating = self.evaluate_weight_biases(
-            adj_bias=adj_bias, lr_bias=lr_bias, edges=self.edges, adj_scores=self.adj_scores, lr_scores=self.lr_scores, out_dir=self.out_dir
+            adj_bias=adj_bias,
+            lr_bias=lr_bias,
+            edges=self.edges,
+            adj_scores=self.adj_scores,
+            lr_scores=self.lr_scores,
+            out_dir=self.out_dir,
         )
         return score
 
-    def optimize(
-        self, num_generations: int = 50, population_size: int =50
-    ) -> list:
+    def optimize(self, num_generations: int = 50, population_size: int = 50) -> list:
         particles: list = self.initialize_particles(population_size=population_size)
         global_best_position = None
         global_best_score = float("inf")
@@ -90,18 +93,16 @@ class ParticleSwarmOptimizer(OptimizerBase):
                     global_best_position = particle["position"]
 
                 # Update particle velocity and position
-                inertia_term = np.multiply(
-                    self.inertia_weight, particle["velocity"]
-                )
+                inertia_term = np.multiply(self.inertia_weight, particle["velocity"])
                 cognitive_term = np.multiply(
-                    self.c1 * random.random(), np.subtract(
+                    self.c1 * random.random(),
+                    np.subtract(
                         particle["personal_best_position"], particle["position"]
-                    )
+                    ),
                 )
                 social_term = np.multiply(
-                    self.c2 * random.random(), np.subtract(
-                        global_best_position, particle["position"]
-                    )
+                    self.c2 * random.random(),
+                    np.subtract(global_best_position, particle["position"]),
                 )
                 particle["velocity"] = np.add(
                     inertia_term, np.add(cognitive_term, social_term)

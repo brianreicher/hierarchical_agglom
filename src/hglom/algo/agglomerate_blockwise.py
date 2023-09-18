@@ -10,10 +10,10 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 def agglomerate(
-    affs_file,
-    affs_dataset,
-    fragments_file,
-    fragments_dataset,
+    affs_file: str,
+    affs_dataset: str,
+    fragments_file: str,
+    fragments_dataset: str,
     context: tuple,
     num_workers: int = 7,
     merge_function: str = "hist_quant_75",
@@ -59,7 +59,9 @@ def agglomerate(
         )
     )
 
-    read_roi: Roi = write_roi#.grow(amount_neg=min_neighborhood, amount_pos=max_neighborhood)
+    read_roi: Roi = (
+        write_roi  # .grow(amount_neg=min_neighborhood, amount_pos=max_neighborhood)
+    )
 
     write_roi: Roi = write_roi * voxel_size
     read_roi: Roi = read_roi * voxel_size
@@ -103,18 +105,19 @@ def agglomerate(
 
     logging.info(msg="RAG file opened")
 
-
     task = daisy.Task(
         task_id="AgglomerateTask",
         total_roi=total_roi,
         read_roi=read_roi,
         write_roi=write_roi,
-        process_function = lambda block : agglomerate_in_block(affs=affs,
-                                                            fragments=fragments,
-                                                            rag_provider=rag_provider,
-                                                            block=block,
-                                                            merge_function=waterz_merge_function,
-                                                            threshold=1.0),
+        process_function=lambda block: agglomerate_in_block(
+            affs=affs,
+            fragments=fragments,
+            rag_provider=rag_provider,
+            block=block,
+            merge_function=waterz_merge_function,
+            threshold=1.0,
+        ),
         num_workers=num_workers,
         read_write_conflict=False,
         fit="shrink",

@@ -20,15 +20,15 @@ def extract_fragments(
     num_workers: int = 20,
     fragments_in_xy=False,
     epsilon_agglomerate=0.05,
-    seeds_file: str=None,
-    seeds_dataset: str=None,
-    mask_file:str=None,
-    mask_dataset:str=None,
-    filter_fragments:float=0.10,
+    seeds_file: str = None,
+    seeds_dataset: str = None,
+    mask_file: str = None,
+    mask_dataset: str = None,
+    filter_fragments: float = 0.10,
     replace_sections=None,
     merge_function: str = "watershed",
 ) -> bool:
-    """Run agglomeration in parallel blocks. Requires that affinities have been
+    """Generate fragments in parallel blocks. Requires that affinities have been
     predicted before.
 
     Args:
@@ -54,18 +54,7 @@ def extract_fragments(
 
     write_roi = Roi(offset=(0,) * 3, shape=Coordinate(affs_ds.chunk_shape)[1:])
 
-    min_neighborhood: int = min(
-        filter(
-            lambda x: x != 0, [value for sublist in neighborhood for value in sublist]
-        )
-    )
-    max_neighborhood: int = max(
-        filter(
-            lambda x: x != 0, [value for sublist in neighborhood for value in sublist]
-        )
-    )
-
-    read_roi: Roi = write_roi#.grow(amount_neg=min_neighborhood, amount_pos=max_neighborhood)
+    read_roi: Roi = write_roi
 
     write_roi: Roi = write_roi * voxel_size
     read_roi: Roi = read_roi * voxel_size
@@ -75,7 +64,7 @@ def extract_fragments(
     os.makedirs(name=block_directory, exist_ok=True)
 
     # prepare fragments dataset
-    fragments = daisy.prepare_ds(
+    fragments: Array = daisy.prepare_ds(
         filename=fragments_file,
         ds_name=fragments_dataset,
         total_roi=total_roi,
@@ -85,7 +74,7 @@ def extract_fragments(
         delete=True,
     )
 
-    num_voxels_in_block = (write_roi / affs_ds.voxel_size).size
+    num_voxels_in_block: int = (write_roi / affs_ds.voxel_size).size
 
     # open RAG DB
     logging.info(msg="Opening RAG DB...")
@@ -103,27 +92,31 @@ def extract_fragments(
         meta_collection=f"hglom_meta",
     )
     logging.info("RAG db opened")
-    fragments_out: Array = open_ds(filename=fragments_file, ds_name=fragments_dataset, mode="r+")
+    fragments_out: Array = open_ds(
+        filename=fragments_file, ds_name=fragments_dataset, mode="r+"
+    )
     task: daisy.Task = daisy.Task(
         task_id="ExtractFragmentsTask",
         total_roi=total_roi,
         read_roi=read_roi,
         write_roi=write_roi,
         process_function=lambda block: watershed_in_block(
-                                            affs=affs_ds,
-                                            block=block,
-                                            context=context,
-                                            rag_provider=rag_provider,
-                                            fragments_out=fragments_out,
-                                            num_voxels_in_block=num_voxels_in_block,
-                                            mask=None,
-                                            fragments_in_xy=fragments_in_xy,
-                                            epsilon_agglomerate=epsilon_agglomerate,
-                                            filter_fragments=filter_fragments,
-                                            replace_sections=replace_sections),
+            affs=affs_ds,
+            block=block,
+            context=context,
+            rag_provider=rag_provider,
+            fragments_out=fragments_out,
+            num_voxels_in_block=num_voxels_in_block,
+            mask=None,
+            fragments_in_xy=fragments_in_xy,
+            epsilon_agglomerate=epsilon_agglomerate,
+            filter_fragments=filter_fragments,
+            replace_sections=replace_sections,
+        ),
         num_workers=num_workers,
         read_write_conflict=False,
-        fit="shrink",)
+        fit="shrink",
+    )
 
     done: bool = daisy.run_blockwise(tasks=[task])
 
