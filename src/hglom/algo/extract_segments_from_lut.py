@@ -29,10 +29,10 @@ def extract_segmentation(
 
         fragments_dataset (``str``):
             The name of the fragments dataset to read from in the fragments file.
-    
+
         merge_function (``str``):
             The method to use for merging fragments (e.g., 'hist_quant_75').
-    
+
         thresholds (``list[float]``, optional):
             List of thresholds for segmentation. Default is [0.66, 0.68, 0.70].
 

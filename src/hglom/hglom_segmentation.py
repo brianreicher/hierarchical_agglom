@@ -11,6 +11,89 @@ import time
 
 
 class PostProcessor:
+    """Driver for post-processing segmentation.
+
+    Args:
+        affs_file (str):
+            Path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
+
+        affs_dataset (str):
+            The name of the affinities dataset in the affs_file to read from.
+
+        context (daisy.Coordinate, optional):
+            A coordinate object (3-dimensional) denoting how much contextual space to grow for the total volume ROI.
+            Defaults to a Coordinate of the maximum absolute value of the neighborhood if ``None``.
+
+        sample_name (str, optional):
+            A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name.
+            Default is None.
+
+        fragments_file (str, optional):
+            Path (relative or absolute) to the zarr file to write fragments to.
+            Default is "", which sets the file to the same as the given ``affs_file``.
+
+        fragments_dataset (str, optional):
+            The name of the fragments dataset to read/write to in the fragments_file.
+            Default is "frags."
+
+        seg_file (str, optional):
+            Path (relative or absolute) to the zarr file to write fragments to.
+            Default is "", which sets the file to the same as the given ``affs_file``.
+
+        seg_dataset (str, optional):
+            The name of the segmentation dataset to write to.
+            Default is "seg."
+
+        seeds_file (str, optional):
+            Path (relative or absolute) to the zarr file containing seeds.
+            Default is None.
+
+        seeds_dataset (str, optional):
+            The name of the seeds dataset in the seeds file to read from.
+            Default is None.
+        
+        filter_val (float, optional):
+            The amount for which fragments will be filtered if their average falls below said value.
+            Default is 0.5.
+
+        neighborhood_length (int, optional):
+            Number of neighborhood offsets to use, default is 12. See ``utils.py`` for full neighborhood.
+
+        nworkers_frags (int, optional):
+            Number of distributed workers to run the Daisy parallel fragment task with.
+            Default is 10.
+
+        merge_function (str, optional):
+            Name of the segmentation algorithm used to denote in the MongoDB edge collection.
+            Default is "hist_quant_75".
+
+        epsilon_agglomerate (float, optional):
+            A threshold parameter for agglomeration. Default is 0.05.
+        
+        nworkers_agglom (int, optional):
+            Number of distributed workers to run the Daisy parallel supervoxel task with.
+            Default is 7.
+        
+        thresholds_minmax (list, optional):
+            The lower and upper bounds to use for generating thresholds. Default is [0, 1].
+
+        thresholds_step (float, optional):
+            The step size to use when generating thresholds between min/max. Default is 0.02.
+
+        block_size (list, optional):
+            The size of one block in world units (must be a multiple of voxel size). Default is [1056, 1056, 1056].
+
+        lut_threshold (float, optional):
+            The threshold to use for generating the segmentation. Default is 0.48.
+
+        nworkers_lut (int, optional):
+            Number of distributed workers to run the Daisy parallel LUT extraction task with.
+            Default is 7.
+        
+        thresholds (list, optional):
+            List of thresholds for segmentation. Default is [0.66, 0.68, 0.70].
+
+    """""
     def __init__(
         self,
         affs_file: str,
@@ -34,7 +117,7 @@ class PostProcessor:
         block_size: Optional[list] = [1056, 1056, 1056],
         lut_threshold: Optional[float] = 0.48,
         nworkers_lut: Optional[int] = 7,
-        thresholds: list[float] = [0.66, 0.68, 0.70]
+        thresholds: list[float] = [0.66, 0.68, 0.70],
     ) -> None:
         # set sample name
         self.sample_name: str = sample_name

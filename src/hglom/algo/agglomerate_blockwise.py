@@ -35,10 +35,10 @@ def agglomerate(
 
         context (``tuple(int, int, int)``):
             The context to consider for fragment extraction and agglomeration, in world units.
-        
+
         num_workers (``int``):
             How many blocks to run in parallel. Default is 7.
-        
+
         merge_function (``str``):
             Symbolic name of a merge function. Default is hist_quant_75. See dictionary below.
     """
@@ -151,11 +151,11 @@ def agglomerate(
 
 def agglomerate_worker(
     block,
-    affs_file:str,
-    affs_dataset:str,
-    fragments_file:str,
-    fragments_dataset:str,
-    merge_function:str="hist_quant_75",
+    affs_file: str,
+    affs_dataset: str,
+    fragments_file: str,
+    fragments_dataset: str,
+    merge_function: str = "hist_quant_75",
 ) -> None:
     waterz_merge_function: dict = {
         "hist_quant_10": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 10, ScoreValue, 256, false>>",

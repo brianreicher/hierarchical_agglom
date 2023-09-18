@@ -47,10 +47,10 @@ def extract_fragments(
 
         num_workers (``int``):
             How many blocks to run in parallel. Default is 20.
-        
+
         fragments_in_xy (``bool``):
             Flag to generate fragments in 2D or 3D. Default is False (3D).
-        
+
         epsilon_agglomerate (``float``):
             A threshold parameter for agglomeration. Default is 0.05.
 

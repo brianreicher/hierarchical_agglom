@@ -34,13 +34,13 @@ def find_segments(
 
         fragments_dataset (``str``):
             The name of the fragments dataset to read from in the fragments file.
-        
+
         thresholds_minmax (``list[int]``, optional):
             The lower and upper bounds to use for generating thresholds. Default is [0, 1].
-        
+
         thresholds_step (``float``, optional):
             The step size to use when generating thresholds between min/max. Default is 0.02.
-        
+
         merge_function (``str``, optional):
             The merge function used to create the segmentation. Default is "hist_quant_75".
 
