@@ -1,4 +1,4 @@
-# hierarchical_agglom
+# hglom
 
 [![](https://img.shields.io/pypi/pyversions/mwatershed.svg)](https://pypi.python.org/pypi/mwatershed)
 [![](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
