@@ -3,7 +3,7 @@ import daisy
 from funlib.geometry import Coordinate, Roi
 from funlib.persistence import graphs, Array
 import time
-from .utils import neighborhood
+from ..utils import neighborhood
 from lsd.post import agglomerate_in_block
 
 logging.getLogger().setLevel(logging.INFO)

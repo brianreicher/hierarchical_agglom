@@ -6,7 +6,7 @@ import time
 from funlib.geometry import Coordinate, Roi
 from funlib.persistence import open_ds, graphs, Array
 from lsd.post import watershed_in_block
-from .utils import neighborhood
+from ..utils import neighborhood
 
 logging.getLogger().setLevel(logging.INFO)
 
