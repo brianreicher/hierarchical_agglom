@@ -1,2 +1,2 @@
 from .utils import neighborhood
-from .run_pipeline import PostProcessor
+from .hglom_segmentation import PostProcessor

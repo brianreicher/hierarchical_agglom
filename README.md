@@ -33,11 +33,18 @@ screen
 mongod
 ```
 
-Install `hierarchical_agglom`:
+Install ``graph_tool``
+
+```bash
+conda install -c conda-forge -c ostrokach-forge -c pkgw-forge graph-tool
+```
+
+Install `hglom`:
 
 ```bash
 pip install git+https://github.com/brianreicher/hierarchical_agglom.git
 ```
+
 ### Features
 
 * A hierarchical-merge-tree implementation to go from affininities to a full segmentation

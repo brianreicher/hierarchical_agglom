@@ -83,7 +83,7 @@ class PostProcessor:
         self.nworkers_lut: int = nworkers_lut
         self.block_size: list = block_size
 
-    def run_hierarchical_agglom_segmentation_pipeline(
+    def segment(
         self,
     ) -> bool:
         if self.sample_name is None:
