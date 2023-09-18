@@ -18,22 +18,29 @@ def agglomerate(
     num_workers: int = 7,
     merge_function: str = "hist_quant_75",
 ) -> None:
-    """Run agglomeration in parallel blocks. Requires that affinities have been
-    predicted before.
+    """Run agglomeration in parallel blocks. Requires that fragments and affinities have been predicted before.
+
     Args:
-        file_name (``string``):
-            The input file containing affs and fragments.
-        affs_dataset, fragments_dataset (``string``):
-            Where to find the affinities and fragments.
-        block_size (``tuple`` of ``int``):
-            The size of one block in world units.
-        context (``tuple`` of ``int``):
-            The context to consider for fragment extraction and agglomeration,
-            in world units.
+        affs_file (``str``):
+            Path (relative or absolute) to the zarr file where affinities are stored.
+
+        affs_dataset (``str``):
+            The name of the fragments dataset to read from in the affinities file.
+
+        fragments_file (``str``):
+            Path (relative or absolute) to the zarr file where fragments are stored.
+
+        fragments_dataset (``str``):
+            The name of the fragments dataset to read from in the fragments file.
+
+        context (``tuple(int, int, int)``):
+            The context to consider for fragment extraction and agglomeration, in world units.
+        
         num_workers (``int``):
-            How many blocks to run in parallel.
-        merge_function (``string``):
-            Symbolic name of a merge function. See dictionary below.
+            How many blocks to run in parallel. Default is 7.
+        
+        merge_function (``str``):
+            Symbolic name of a merge function. Default is hist_quant_75. See dictionary below.
     """
 
     start: float = time.time()
@@ -144,11 +151,11 @@ def agglomerate(
 
 def agglomerate_worker(
     block,
-    affs_file,
-    affs_dataset,
-    fragments_file,
-    fragments_dataset,
-    merge_function: str = "hist_quant_75",
+    affs_file:str,
+    affs_dataset:str,
+    fragments_file:str,
+    fragments_dataset:str,
+    merge_function:str="hist_quant_75",
 ) -> None:
     waterz_merge_function: dict = {
         "hist_quant_10": "OneMinus<HistogramQuantileAffinity<RegionGraphType, 10, ScoreValue, 256, false>>",
