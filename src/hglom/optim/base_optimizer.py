@@ -2,7 +2,7 @@ import time
 import os
 import numpy as np
 from funlib.persistence import open_ds, graphs, Array
-from ..algo import segment, extract_segmentation
+from ..algo import find_segments, extract_segmentation
 from funlib.evaluate import rand_voi
 
 
