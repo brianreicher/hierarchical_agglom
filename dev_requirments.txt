@@ -4,6 +4,7 @@ scikit-image
 daisy
 numba
 pytest
+matplotlib
 mwatershed @ git+https://github.com/pattonw/mwatershed
 funlib.geometry @ git+https://github.com/funkelab/funlib.geometry
 funlib.persistence @ git+https://github.com/funkelab/funlib.persistence
